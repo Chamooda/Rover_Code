@@ -1,29 +1,29 @@
-  #include <WiFi.h>
-
+#include <WiFi.h>
+#include "ArduinoJson.h"
 #include <WebSocketClient.h>
 
 const char* ssid     = "Skyguy";
 const char* password = "TheForce";
 char path[] = "/";
-char host[] = "192.168.215.104:8082";
-String IP ="192.168.215.104";
+char host[] = "192.168.215.160:8082";
+String IP ="192.168.215.160";
 WebSocketClient webSocketClient;
 
 // Use WiFiClient class to create TCP connections
 WiFiClient client;
 
-int motor1Pin1=20;
-int motor1Pin2=21;
-int Enable1Pin=14;
+int motor1Pin1=18;
+int motor1Pin2=5;
+int Enable1Pin=19;
 
-int motor2Pin1=15;
+int motor2Pin1=17;
 int motor2Pin2=16;
-int Enable2Pin=17;
+int Enable2Pin=4;
 
 const int freq= 30000;
 const int pwmChannel=0;
 const int resolution=8;
-int Speed=200;
+int Speed=100;
 
 
 void setup() {
@@ -68,7 +68,7 @@ void setup() {
   
 
   // Connect to the websocket server
-  if (client.connect("192.168.215.104", 8082)) {
+  if (client.connect("192.168.215.160", 8082)) {
     Serial.println("Connected");
   } else {
     Serial.println("Connection failed.");
@@ -147,75 +147,102 @@ void Backward()
 
 }
 
-void loop() {
-  String data;
-  StaticJsonBuffer<300> JSONBuffer;
-  String Direction;
-  int speed;
-  if (client.connected()) {
-    
-    webSocketClient.getData(data);
-    if (data.length() > 0) {
-      Serial.print("Received data: ");
-      Serial.println(data);
-    }
+void processReceivedJSON(String jsonStr) {
+  // Create a JSON document to parse the data
+  StaticJsonDocument<256> doc; // Adjust the size as per your needs
 
+  // Parse the JSON string
+  DeserializationError error = deserializeJson(doc, jsonStr);
 
-
-    JsonObject& parsed = JSONBuffer.parseObject(data); 
-    if (!parsed.success()) { //Check for errors in parsing
-      Serial.println("Parsing failed");
-      delay(5000);
-      return;
-    }
-    Direction = parsed["Direction"];
-    Speed=parsed["speed"];
-    
-    if (Direction=="up")
-    {
-      Forward();
-      Serial.println("Going Forward");
-    }
-    else if(Direction=="left")
-    {
-      Left();
-      Serial.println("Going Left");
-    }
-    else if(Direction=="right")
-    {
-      Right();
-      Serial.println("Going Right");
-
-    }
-    else if(Direction=="down")
-    {
-      Backwards();
-      Serial.println("Going Back");
-    }
-    else
-    {
-      Reset_Motors();
-      Serial.println("Stopped");
-    }
-    
-
-
-
-
-    
-    data = "Rover is connected...";
-    
-    webSocketClient.sendData(data);
-    
-  } else {
-    Serial.println("Client disconnected.");
-    while (1) {
-      // Hang on disconnect.
-    }
+  // Check for parsing errors
+  if (error) {
+    Serial.print(F("Failed to parse JSON: "));
+    Serial.println(error.c_str());
+    return;
   }
+
+  // Access the JSON data
+  String Direction = doc["direction"];
+  int Speed = doc["speed"];
   
-  // wait to fully let the client disconnect
-  // delay(400);
-  
+
+  // Process the parsed data as needed
+  Serial.println("Received JSON data:");
+  Serial.print("key1: ");
+  Serial.print(Direction);
+  Serial.print(", key2: ");
+  Serial.println(Speed);
+
 }
 
+
+
+
+// void loop() {
+//   String data;
+  
+//   String Direction;
+  
+//   if (client.connected()) {
+    
+//     webSocketClient.getData(data);
+//     if (data.length() > 0) {
+//       Serial.print("Received data: ");
+//       Serial.println(data);
+//     }
+
+
+//     processReceivedJSON(data);
+    
+//     if (Direction=="up")
+//     {
+//       Forward();
+//       Serial.println("Going Forward");
+//     }
+//     else if(Direction=="left")
+//     {
+//       Left();
+//       Serial.println("Going Left");
+//     }
+//     else if(Direction=="right")
+//     {
+//       Right();
+//       Serial.println("Going Right");
+
+//     }
+//     else if(Direction=="down")
+//     {
+//       Backward();
+//       Serial.println("Going Back");
+//     }
+//     else
+//     {
+//       Reset_Motors();
+//       Serial.println("Stopped");
+//     }
+    
+
+
+
+
+    
+//     data = "Rover is connected...";
+    
+//     webSocketClient.sendData(data);
+    
+//   } else {
+//     Serial.println("Client disconnected.");
+//     while (1) {
+//       // Hang on disconnect.
+//     }
+//   }
+  
+//   // wait to fully let the client disconnect
+//   // delay(400);
+  
+// }
+
+void loop()
+{
+  Forward();
+}
