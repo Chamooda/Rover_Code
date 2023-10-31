@@ -5,6 +5,57 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rover</title>
     <style>
+
+    
+
+    .grid-container {
+    display: grid;
+    gap: 10px;
+    padding: 10px;
+    }
+
+    .new-grid{
+        display: grid;
+        gap: 10px;
+        padding: 20px;
+    }
+
+    .item1 {
+    grid-column: 2;
+    grid-row: 1;
+    }
+
+
+    .item2{
+    grid-column: 4;
+    grid-row: 1;
+    }
+
+    .item3{
+    grid-column: 2 / span 3;
+    grid-row: 2;
+    }
+
+        .nitem1{
+            grid-column: 2;
+            grid-row: 1;
+            margin-left: 50px;
+        }
+
+        .nitem2{
+            grid-column: 1;
+            grid-row: 2;
+        }
+        .nitem3{
+            grid-column: 3;
+            grid-row: 2;
+        }
+        .nitem4{
+            grid-column: 2;
+            grid-row: 2;
+        }
+
+
         body {
             background-color: #181818; 
             margin: 0;
@@ -29,8 +80,10 @@
             max-width: 50%;
             display: block;
             margin: 0 auto;
-            position:relative;
+            align-self: center;
             top:20px;
+            align-items: center;
+            padding: 30px;
         }
 
 
@@ -38,7 +91,7 @@
             text-align: center;
             position: relative;
             margin: 0 auto;
-            max-width: 30%;
+            max-width: 70%;
             padding: 20px;
             top:40px;
 
@@ -93,7 +146,7 @@
         }
 
         .Sensor {
-            text-align: center;
+            text-align: left;
             padding: 10px;
             color: #ccc; 
             font-size: 14px;
@@ -109,42 +162,51 @@
         }
     </style>
 </head>
-<body>  
-    <h1><center><big>ROVER</big></center></h1>
+  
+    <h1><center><big>Proxy Rover</big></center></h1>
+    
+    <div class="grid-container">
+        <div id="videoPlayer" class = "item1">
+            <img id = "mainImage" style = "display: block;margin: auto;background-color: hsl(0, 0%, 25%);" src="http://192.168.73.36:81/streamm" onerror="replaceImage()" alt ="cute.jpg">
+        </div>
         
-        <div id="videoPlayer">
-            <img style="display: block;margin: auto;background-color: hsl(0, 0%, 25%);" src="http://192.168.73.36:81/stream">
+        
+
+        
+        <div class="Sensor item2">
+            <h2>Temperature: 0</h2>
+            <h2>Humidity: 0</h2>
+            <h2>Methane Level: <span id="CH4">0</span> </h2>
+            <h2>Carbon Monoxide: <span id="CO">0</span> </h2>
         </div>
 
+
+        <div class="arrow-container item3">
+        <div class="arrow-container">
+            <div class = "new-grid">
+            <button class="arrow-button up nitem1" id="upButton"></button>
+            <br>
+            <button class="arrow-button left nitem2" id="leftButton"></button>
+      
+            <button class="arrow-button right nitem3" id="rightButton"></button>
+        
+            <button class="arrow-button down nitem4" id="downButton"></button>
+        </div>
+        </div>
+        
+        
         <div id="slider-container">
             <input type="range" id="speedSlider" min="0" max="100" value="50">
             <h1 style="color:#ccc;">Speed: <span id="speedValue">50</span></h1>
-            <div class="arrow-container">
-                <button class="arrow-button up" id="upButton"></button>
-            </div>
-            <br>
-            <div class="arrow-container">
-                <button class="arrow-button left" id="leftButton"></button>
-            <pre>                  </pre>
-                <button class="arrow-button right" id="rightButton"></button>
-            </div>
-            <div class="arrow-container">
-                <button class="arrow-button down" id="downButton"></button>
-            </div>
-            <div>
-                <button>Hello</button>    
-            </div>
+        </div>
+        <br>
+    </div>
+            
+            
 
             
             
-    
-    <div class="Sensor">
-        <h1>Temperature: 0</h1>
-        <h1>Humidity: 0</h1>
-        <br />
-        <h1>Methane Level: </h1><h1 id="CH4">0</h1>
-        <h1>Carbon Monoxide: </h1><h1 id="CO">0</h1>
-    </div>
+</div>
 
     <script>
         const ws= new WebSocket("ws://192.168.73.160:8082");
@@ -239,6 +301,14 @@
         ws.addEventListener("close",()=>{
             
         })
+
+        function replaceImage() {
+            // Get the image element
+            var image = document.getElementById("mainImage");
+
+            // Set the source of the image to the alternate image
+            image.src = "cute.jpg";
+        }
        
     </script>
 </body>
