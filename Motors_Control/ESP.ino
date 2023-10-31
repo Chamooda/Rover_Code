@@ -2,15 +2,16 @@
 #include "ArduinoJson.h"
 #include <WebSocketClient.h>
 
-const char* ssid     = "Skyguy";
+const char* ssid = "Skyguy";
 const char* password = "TheForce";
 char path[] = "/";
-char host[] = "192.168.215.160:8082";
-String IP ="192.168.215.160";
+char host[] = "192.168.73.160:8082";
+String IP ="192.168.73.160";
 WebSocketClient webSocketClient;
-
+String Direction;
 // Use WiFiClient class to create TCP connections
 WiFiClient client;
+
 
 int motor1Pin1=18;
 int motor1Pin2=5;
@@ -23,7 +24,7 @@ int Enable2Pin=4;
 const int freq= 30000;
 const int pwmChannel=0;
 const int resolution=8;
-int Speed=100;
+int Speed=155;
 
 
 void setup() {
@@ -68,7 +69,7 @@ void setup() {
   
 
   // Connect to the websocket server
-  if (client.connect("192.168.215.160", 8082)) {
+  if (client.connect("192.168.73.160", 8082)) {
     Serial.println("Connected");
   } else {
     Serial.println("Connection failed.");
@@ -107,7 +108,6 @@ void Reset_Motors()
 
 void Forward()
 {
-  Reset_Motors();
   ledcWrite(pwmChannel, Speed);
   digitalWrite(motor1Pin1,HIGH);
   digitalWrite(motor1Pin2,LOW);
@@ -116,20 +116,18 @@ void Forward()
 
 }
 
-void Left()
+void Right()
 {
-  Reset_Motors();
-  ledcWrite(pwmChannel,Speed);
+  ledcWrite(pwmChannel, Speed);
   digitalWrite(motor1Pin1,HIGH);
   digitalWrite(motor1Pin2,LOW);
   digitalWrite(motor2Pin1,LOW);
   digitalWrite(motor2Pin2,HIGH);
 }
 
-void Right()
+void Left()
 {
-  Reset_Motors();
-  ledcWrite(pwmChannel,Speed);
+  ledcWrite(pwmChannel, Speed);
   digitalWrite(motor1Pin1,LOW);
   digitalWrite(motor1Pin2,HIGH);
   digitalWrite(motor2Pin1,HIGH);
@@ -138,7 +136,6 @@ void Right()
 
 void Backward()
 {
-  Reset_Motors();
   ledcWrite(pwmChannel, Speed);
   digitalWrite(motor1Pin1,LOW);
   digitalWrite(motor1Pin2,HIGH);
@@ -149,21 +146,18 @@ void Backward()
 
 void processReceivedJSON(String jsonStr) {
   // Create a JSON document to parse the data
-  StaticJsonDocument<256> doc; // Adjust the size as per your needs
+  DynamicJsonDocument doc(256); // Adjust the size as per your needs
 
   // Parse the JSON string
-  DeserializationError error = deserializeJson(doc, jsonStr);
+  deserializeJson(doc, jsonStr);
 
   // Check for parsing errors
-  if (error) {
-    Serial.print(F("Failed to parse JSON: "));
-    Serial.println(error.c_str());
-    return;
-  }
 
-  // Access the JSON data
-  String Direction = doc["direction"];
-  int Speed = doc["speed"];
+
+  // Access the JSON data and assign to golobal variables
+  Direction = doc["direction"].as<String>();
+  Speed = doc["speed"].as<int>();
+  Speed= map(Speed,0,100,0,255);
   
 
   // Process the parsed data as needed
@@ -172,77 +166,82 @@ void processReceivedJSON(String jsonStr) {
   Serial.print(Direction);
   Serial.print(", key2: ");
   Serial.println(Speed);
-
+  
 }
 
 
 
 
-// void loop() {
-//   String data;
+void loop() {
+  String data;
+ 
+
+  if (client.connected()) {
+    
+    webSocketClient.getData(data);
+    if (data.length() > 0) {
+      Serial.print("Received data: ");
+      Serial.println(data);
+    }
+    
+
+    processReceivedJSON(data);
+    
+    if (Direction=="up")
+    {
+      Forward();
+      Serial.println("Going Forward");
+    }
+    else if(Direction=="left")
+    {
+      Left();
+      Serial.println("Going Left");
+    }
+    else if(Direction=="right")
+    {
+      Right();
+      Serial.println("Going Right");
+
+    }
+    else if(Direction=="down")
+    {
+      Backward();
+      Serial.println("Going Back");
+    }
+    else
+    {
+      Reset_Motors();
+      Serial.println("Stopped");
+    }
+    
+
+
+
+
+    
+    data = "Rover is connected...";
+    
+    webSocketClient.sendData(data);
+    
+  } else {
+    Serial.println("Client disconnected.");
+    while (1) {
+      // Hang on disconnect.
+    }   
+  }
   
-//   String Direction;
+  // wait to fully let the client disconnect
+  delay(400);
   
-//   if (client.connected()) {
-    
-//     webSocketClient.getData(data);
-//     if (data.length() > 0) {
-//       Serial.print("Received data: ");
-//       Serial.println(data);
-//     }
+}
 
-
-//     processReceivedJSON(data);
-    
-//     if (Direction=="up")
-//     {
-//       Forward();
-//       Serial.println("Going Forward");
-//     }
-//     else if(Direction=="left")
-//     {
-//       Left();
-//       Serial.println("Going Left");
-//     }
-//     else if(Direction=="right")
-//     {
-//       Right();
-//       Serial.println("Going Right");
-
-//     }
-//     else if(Direction=="down")
-//     {
-//       Backward();
-//       Serial.println("Going Back");
-//     }
-//     else
-//     {
-//       Reset_Motors();
-//       Serial.println("Stopped");
-//     }
-    
-
-
-
-
-    
-//     data = "Rover is connected...";
-    
-//     webSocketClient.sendData(data);
-    
-//   } else {
-//     Serial.println("Client disconnected.");
-//     while (1) {
-//       // Hang on disconnect.
-//     }
-//   }
-  
-//   // wait to fully let the client disconnect
-//   // delay(400);
-  
+// void loop()
+// {
+//   // Move forward
+//   Serial.println("Forward");
+//   Forward();
+//   delay(5000);
+//   Serial.println("Righty");
+//   Righty();
+//   delay(5000);
 // }
-
-void loop()
-{
-  Forward();
-}
