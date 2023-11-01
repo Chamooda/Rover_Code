@@ -167,15 +167,15 @@
     
     <div class="grid-container">
         <div id="videoPlayer" class = "item1">
-            <img id = "mainImage" style = "display: block;margin: auto;background-color: hsl(0, 0%, 25%);" src="http://192.168.73.36:81/streamm" onerror="replaceImage()" alt ="cute.jpg">
+            <img id = "mainImage" style = "display: block;margin: auto;background-color: hsl(0, 0%, 25%);" src="http://192.168.114.36:81/stream" onerror="replaceImage()" alt ="cute.jpg">
         </div>
         
-        
+-
 
         
         <div class="Sensor item2">
-            <h2>Temperature: 0</h2>
-            <h2>Humidity: 0</h2>
+            <h2>Temperature:<span id="Temp">0</span></h2>
+            <h2>Humidity: <span id="Humid">0</span></h2>
             <h2>Methane Level: <span id="CH4">0</span> </h2>
             <h2>Carbon Monoxide: <span id="CO">0</span> </h2>
         </div>
@@ -198,6 +198,9 @@
         <div id="slider-container">
             <input type="range" id="speedSlider" min="0" max="100" value="50">
             <h1 style="color:#ccc;">Speed: <span id="speedValue">50</span></h1>
+
+            <input type="range" id="angleSlider" min="-90" max="90" value="0">
+            <h1 style="color:#ccc;">Angle: <span id="angleValue">0</span></h1>
         </div>
         <br>
     </div>
@@ -209,7 +212,7 @@
 </div>
 
     <script>
-        const ws= new WebSocket("ws://192.168.73.160:8082");
+        const ws= new WebSocket("ws://192.168.114.160:8082");
         
         const buttons = document.querySelectorAll('.arrow-button');
         var direction='none';
@@ -249,21 +252,26 @@
         });
 
         const CH4Element = document.getElementById("CH4");
-        const COElement=document.getElementById("CO");        
+        const COElement=document.getElementById("CO");   
+        const TempElement=document.getElementById("Temp");
+        const HumidElement=document.getElementById("Humid")     
         const speedSlider = document.getElementById('speedSlider');
         const speedValue = document.getElementById('speedValue');
-
+        const angleSlider= document.getElementById('angleSlider');
+        const angleValue= document.getElementById('angleValue');
         
         let speed = speedSlider.value;
-
+        let angle=angleSlider.value;
+        
         function handleSliderChange() {
             speed = speedSlider.value;
-
+            angle= angleSlider.value;
+            angleValue.textContent = angle;
             speedValue.textContent = speed;
         }
 
         speedSlider.addEventListener('input', handleSliderChange);
-
+        angleSlider.addEventListener('input',handleSliderChange);
 
 
 
@@ -284,7 +292,8 @@
                 id,
                 name,
                 direction,
-                speed
+                speed,
+                angle
             }))}
             else{
 
@@ -295,11 +304,12 @@
             const jsonObject = JSON.parse(data);
             CH4Element.innerText = jsonObject["mq7"]; 
             COElement.innerText = jsonObject["mq4"];
-            
+            TempElement.innerText= jsonObject["temperature"];
+            HumidElement.innerText= jsonObject["Humidity"];
 
         })
         ws.addEventListener("close",()=>{
-            
+            ws= new WebSocket("ws://192.168.114.160:8082");
         })
 
         function replaceImage() {
