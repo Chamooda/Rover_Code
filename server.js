@@ -1,5 +1,9 @@
-var WebSocketServer = require('websocket').server;
+var WebSocketServer= require('websocket').server;
 var http = require('http');
+const net = require('net');
+const port = 8083;
+let ESP_01="";
+
 
 var server = http.createServer(function(request, response) {
     console.log((new Date()) + ' Received request for ' + request.url);
@@ -30,11 +34,15 @@ wsServer.on('request', (socket)=>{
         client2 = connection;
     }
 
-    
-    
-    
+        
     console.log((new Date()) + ' Connection accepted.');
-
+    // connection.on('connected',function(message)
+    // {
+    //     if (ESP_01!="")
+    //     {
+    //         connection.send(ESP_01)
+    //     }
+    // })
     connection.on('message', function(message) {
         if (message.type === 'utf8') {
             
@@ -62,6 +70,7 @@ wsServer.on('request', (socket)=>{
         if (connection === client1 && client2) {
             // Forward message from Client1 to Client2
             client2.sendUTF(message.utf8Data);
+            
         } else if (connection === client2 && client1) {
             // Forward message from Client2 to Client1
             client1.sendUTF(message.utf8Data);
@@ -73,8 +82,43 @@ wsServer.on('request', (socket)=>{
 
     connection.on('close', function(reasonCode, description) {
         console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
+        if (connection === client1) {
+            client1=null;            
+        } 
+        else if (connection === client2) {
+            client2=null;        
+        }
     });
 });
 
 
+// For Arduino :) 
 
+
+// const server2 = net.createServer((socket) => {
+//     console.log('Client connected.');
+  
+//     socket.on('data', (data) => {
+//       const receivedData = data.toString();
+//       ESP_01=receivedData;
+//       console.log(`Received data: ${receivedData}`);
+//       // Here, you can process the received data as needed.
+  
+//       // Example: Send a response back to the client (ESP-01).
+//       const response = "Server received: " + receivedData;
+//       socket.write(response);
+//     });
+  
+//     socket.on('end', () => {
+//       console.log('Client disconnected.');
+//     });
+  
+//     socket.on('error', (err) => {
+//       console.error(`Error: ${err.message}`);
+//     });
+//   });
+  
+//   server2.listen(port, () => {
+//     console.log(`Server listening on port ${port}`);
+//   });
+  
