@@ -208,11 +208,10 @@
             
 
             
-            
 </div>
 
     <script>
-        const ws= new WebSocket("ws://192.168.114.160:8082");
+        const ws= new WebSocket("ws://192.168.87.104:8082");
         
         const buttons = document.querySelectorAll('.arrow-button');
         var direction='none';
@@ -280,7 +279,7 @@
             console.log("Connected Successfully");
             
             ws.send("client".toString())
-            intervalId = setInterval(SendUpdate,400);
+            intervalId = setInterval(SendUpdate,1);
             
         })
 
@@ -304,12 +303,12 @@
             const jsonObject = JSON.parse(data);
             CH4Element.innerText = jsonObject["mq7"]; 
             COElement.innerText = jsonObject["mq4"];
-            TempElement.innerText= jsonObject["temperature"];
-            HumidElement.innerText= jsonObject["Humidity"];
+            TempElement.innerText= jsonObject["Temp"];
+            HumidElement.innerText= jsonObject["Humid"];
 
         })
         ws.addEventListener("close",()=>{
-            ws= new WebSocket("ws://192.168.114.160:8082");
+            ws= new WebSocket("ws://192.168.87.104:8082");
         })
 
         function replaceImage() {
