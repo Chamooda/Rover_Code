@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Document</title>
+    <style>
+        
+        #slider-container {
+            text-align: center;
+        }
+        .arrow-button {
+            width: 0;
+            height: 0;
+            border-style: solid;
+            display: inline-block;
+            margin: 10px;
+        }
+        
+        .up {
+            border-width: 0 20px 30px 20px;
+            border-color: transparent transparent #007bff transparent;
+        }
+
+        .down {
+            
+            border-width: 30px 20px 0 20px;
+            border-color: #007bff transparent transparent transparent;
+        }
+
+        .left {
+            border-width: 20px 30px 20px 0;
+            border-color: transparent #007bff transparent transparent;
+        }
+
+        .right {
+            border-width: 20px 0 20px 30px;
+            border-color: transparent transparent transparent #007bff;
+        }
+    </style>
+
+</head>
+<body>
+    <div id="slider-container">
+    
+    <button class="arrow-button up" id="upButton"></button>
+    
+    <br>
+    
+    <button class="arrow-button left" id="leftButton"></button>
+    <button class="arrow-button down" id="downButton"></button>
+    <button class="arrow-button right" id="rightButton"></button>
+    <br>
+
+    
+        <input type="range" id="speedSlider" min="0" max="100" value="50">
+        <p>Speed: <span id="speedValue">50</span></p>
+    </div>
+
+    <script>
+        const ws= new WebSocket("ws://192.168.87.104:8082");
+        
+        const buttons = document.querySelectorAll('.arrow-button');
+        var direction='none';
+        buttons.forEach(button => {
+            button.addEventListener('touchstart', function() {
+                if (button.classList.contains('up')) {
+                    direction = 'up';
+                } else if (button.classList.contains('left')) {
+                    direction = 'left';
+                } else if (button.classList.contains('down')) {
+                    direction = 'down';
+                } else if (button.classList.contains('right')) {
+                    direction = 'right';
+                }
+            });
+
+            button.addEventListener('touchend', function() {
+                direction = 'none';
+            });
+        });
+        buttons.forEach(button => {
+            button.addEventListener('mousedown', function() {
+                if (button.classList.contains('up')) {
+                    direction = 'up';
+                } else if (button.classList.contains('left')) {
+                    direction = 'left';
+                } else if (button.classList.contains('down')) {
+                    direction = 'down';
+                } else if (button.classList.contains('right')) {
+                    direction = 'right';
+                }
+            });
+
+            button.addEventListener('mouseup', function() {
+                direction = 'none';
+            });
+        });
+
+        
+        const speedSlider = document.getElementById('speedSlider');
+        const speedValue = document.getElementById('speedValue');
+
+        
+        let speed = speedSlider.value;
+
+        function handleSliderChange() {
+            speed = speedSlider.value;
+
+            speedValue.textContent = speed;
+        }
+
+        speedSlider.addEventListener('input', handleSliderChange);
+
+
+
+
+        ws.addEventListener("open", ()=>{
+
+            console.log("Connected Successfully");
+            
+            ws.send("client".toString())
+            intervalId = setInterval(SendUpdate,400);
+            
+        })
+
+        
+
+        function SendUpdate(id,name){
+            if(ws.OPEN){
+            ws.send("client"+JSON.stringify({
+                id,
+                name,
+                direction,
+                speed
+            }))}
+            else{
+
+            }
+        }
+        ws.addEventListener("message",({data})=>{
+            
+            
+            console.log(data);
+            
+
+        })
+        ws.addEventListener("close",()=>{
+            
+        })
+
+    </script>
+</body>
+</html>

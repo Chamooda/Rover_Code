@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rover</title>
+    <style>
+
+    
+
+    .grid-container {
+    display: grid;
+    gap: 10px;
+    padding: 10px;
+    }
+
+    .new-grid{
+        display: grid;
+        gap: 10px;
+        padding: 20px;
+    }
+
+    .item1 {
+    grid-column: 2;
+    grid-row: 1;
+    }
+
+
+    .item2{
+    grid-column: 4;
+    grid-row: 1;
+    }
+
+    .item3{
+    grid-column: 2 / span 3;
+    grid-row: 2;
+    }
+
+        .nitem1{
+            grid-column: 2;
+            grid-row: 1;
+            margin-left: 50px;
+        }
+
+        .nitem2{
+            grid-column: 1;
+            grid-row: 2;
+        }
+        .nitem3{
+            grid-column: 3;
+            grid-row: 2;
+        }
+        .nitem4{
+            grid-column: 2;
+            grid-row: 2;
+        }
+
+
+        body {
+            background-color: #181818; 
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            font-size: 18px;
+            font-family: "Courier New", Courier, monospace;
+            color: #fff; 
+        }
+
+        .arrow-container {
+    display: flex;
+    justify-content: center;
+}
+
+
+        input[type="range"] {
+            width: 100%;
+        }
+
+        #videoPlayer {
+            max-width: 50%;
+            display: block;
+            margin: 0 auto;
+            align-self: center;
+            top:20px;
+            align-items: center;
+            padding: 30px;
+        }
+
+
+        #slider-container {
+            text-align: center;
+            position: relative;
+            margin: 0 auto;
+            max-width: 70%;
+            padding: 20px;
+            top:40px;
+
+        }
+
+        .arrow-button {
+            width: 90px;
+            height: 90px;
+            background-color: #007bff; /* Blue button background */
+            display: flex;
+            margin: 30px;
+            border-radius: 20%;
+            color: #fff; /* White text color */
+            font-size: 26px;
+            cursor: pointer;
+        }
+
+        .arrow-button:hover {
+            background-color: #0056b3;
+        }
+
+        .up::after,
+        .down::after,
+        .left::after,
+        .right::after {
+            content: "";
+            display: block;
+        }
+
+        .up::after {
+            border: 30px solid transparent;
+            border-bottom: 30px solid white;
+            margin:auto;
+        }
+
+        .down::after {
+            border: 30px solid transparent;
+            border-top:30px solid white;
+            margin:auto;
+        }
+
+        .left::after {
+            border: 30px solid transparent;
+            border-right: 30px solid white;
+            margin:auto;
+        }
+
+        .right::after {
+            border: 30px solid transparent;
+            border-left: 30px solid white;
+            margin:auto;
+        }
+
+        .Sensor {
+            text-align: left;
+            padding: 10px;
+            color: #ccc; 
+            font-size: 14px;
+        }
+
+        /* Add media queries for responsiveness */
+        @media (max-width: 768px) {
+            .arrow-button {
+                width: 90px;
+                height: 90px;
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+  
+    <h1><center><big>Proxy Rover</big></center></h1>
+    
+    <div class="grid-container">
+        <div id="videoPlayer" class = "item1">
+            <img id = "mainImage" style = "display: block;margin: auto;background-color: hsl(0, 0%, 25%);
+            transform: rotate(90deg);" src="http://192.168.27.36:81/stream" onerror="replaceImage()" alt ="cute.jpg">
+        </div>
+        
+-
+
+        
+        <div class="Sensor item2">
+            <h2>Temperature:<span id="Temp">0</span></h2>
+            <h2>Humidity: <span id="Humid">0</span></h2>
+            <h2>Methane Level: <span id="CH4">0</span> </h2>
+            <h2>Carbon Monoxide: <span id="CO">0</span> </h2>
+        </div>
+
+
+        <div class="arrow-container item3">
+        <div class="arrow-container">
+            <div class = "new-grid">
+            <button class="arrow-button up nitem1" id="upButton"></button>
+            <br>
+            <button class="arrow-button left nitem2" id="leftButton"></button>
+      
+            <button class="arrow-button right nitem3" id="rightButton"></button>
+        
+            <button class="arrow-button down nitem4" id="downButton"></button>
+        </div>
+        </div>
+        
+        
+        <div id="slider-container">
+            <input type="range" id="speedSlider" min="0" max="100" value="50">
+            <h1 style="color:#ccc;">Speed: <span id="speedValue">50</span></h1>
+
+            <input type="range" id="angleSlider" min="0" max="180" value="0">
+            <h1 style="color:#ccc;">Angle: <span id="angleValue">0</span></h1>
+        </div>
+        <br>
+    </div>
+            
+            
+
+            
+</div>
+
+    <script>
+        const ws= new WebSocket("ws://192.168.27.104:8082");
+        
+        const buttons = document.querySelectorAll('.arrow-button');
+        var direction='none';
+        buttons.forEach(button => {
+            button.addEventListener('touchstart', function() {
+                if (button.classList.contains('up')) {
+                    direction = 'up';
+                } else if (button.classList.contains('left')) {
+                    direction = 'left';
+                } else if (button.classList.contains('down')) {
+                    direction = 'down';
+                } else if (button.classList.contains('right')) {
+                    direction = 'right';
+                }
+            });
+
+            button.addEventListener('touchend', function() {
+                direction = 'none';
+            });
+        });
+        buttons.forEach(button => {
+            button.addEventListener('mousedown', function() {
+                if (button.classList.contains('up')) {
+                    direction = 'up';
+                } else if (button.classList.contains('right')) {
+                    direction = 'left';
+                } else if (button.classList.contains('down')) {
+                    direction = 'down';
+                } else if (button.classList.contains('left')) {
+                    direction = 'right';
+                }
+            });
+
+            button.addEventListener('mouseup', function() {
+                direction = 'none';
+            });
+        });
+
+        const CH4Element = document.getElementById("CH4");
+        const COElement=document.getElementById("CO");   
+        const TempElement=document.getElementById("Temp");
+        const HumidElement=document.getElementById("Humid")     
+        const speedSlider = document.getElementById('speedSlider');
+        const speedValue = document.getElementById('speedValue');
+        const angleSlider= document.getElementById('angleSlider');
+        const angleValue= document.getElementById('angleValue');
+        
+        let speed = speedSlider.value;
+        let angle=angleSlider.value;
+        
+        function handleSliderChange() {
+            speed = speedSlider.value;
+            angle= angleSlider.value;
+            angleValue.textContent = angle;
+            speedValue.textContent = speed;
+        }
+
+        speedSlider.addEventListener('input', handleSliderChange);
+        angleSlider.addEventListener('input',handleSliderChange);
+
+
+
+        ws.addEventListener("open", ()=>{
+
+            console.log("Connected Successfully");
+            
+            ws.send("client".toString())
+            intervalId = setInterval(SendUpdate,1500);
+            
+        })
+
+        
+
+        function SendUpdate(id,name){
+            if(ws.OPEN){
+            ws.send(JSON.stringify({
+                id,
+                name,
+                direction,
+                speed,
+                angle
+            }))}
+            else{
+
+            }
+        }
+        ws.addEventListener("message",({data})=>{
+            
+            const jsonObject = JSON.parse(data);
+            CH4Element.innerText = jsonObject["mq7"]; 
+            COElement.innerText = jsonObject["mq4"];
+            TempElement.innerText= jsonObject["Temp"];
+            HumidElement.innerText= jsonObject["Humid"];
+
+        })
+        ws.addEventListener("close",()=>{
+            ws= new WebSocket("ws://192.168.87.104:8082");
+        })
+
+        function replaceImage() {
+            // Get the image element
+            var image = document.getElementById("mainImage");
+
+            // Set the source of the image to the alternate image
+            image.src = "cute.jpg";
+        }
+       
+    </script>
+</body>
+</html>

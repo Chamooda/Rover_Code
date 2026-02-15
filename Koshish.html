@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rover</title>
+    <style>
+        body {
+            background-color: rgb(25, 57, 68);
+            margin: 40px auto;
+            max-width: 500px;
+            line-height: 1.6;
+            font-size: 18px;
+            font-family: "Courier New", Courier, monospace;
+            color: #c7bcbc;
+            padding: 0 10px;
+            position: relative;
+        }
+
+        #slider-container {
+            text-align: center; /* Center align the slider container */
+        position:relative;
+        bottom:-200px;
+        left:-300px;
+        }
+
+        input[type="range"]{
+            width:80%;
+        }
+        .arrow-container {
+    display: flex;
+    justify-content: center;
+}
+
+        #videoPlayer {
+            position:relative;
+            top: 5px;
+            left: -400px;
+
+        }
+
+        .arrow-button {
+            width: 90px; /* Increase the button size */
+            height: 90px; /* Increase the button size */
+            background-color: #007bff; /* Change button background color */
+            display: inline-block;
+            margin: 25px;
+            border-radius: 10%; /* Make the button circular */
+            color: rgb(113, 43, 43); /* Text color */
+            font-size: 20px; /* Increase text size */
+            cursor: pointer; /* Add pointer cursor on hover */
+            position:relative;
+            bottom:200px;
+            left:600px;
+
+        }
+
+        .arrow-button:hover {
+            background-color: #0056b3; /* Darker color on hover */
+        }
+
+        .up::after,
+        .down::after,
+        .left::after,
+        .right::after {
+            content: "";
+            display: block;
+        }
+
+        .up::after {
+            border: 30px solid transparent;
+            border-bottom: 30px solid white;
+            margin:5px;
+             
+        }
+
+        .down::after {
+            border: 30px solid transparent;
+            border-top: 30px solid white;
+            margin:5px;
+            
+            
+        }
+        .arrow-button.left {
+    margin-right: 90px; 
+}
+
+.arrow-button.right {
+    margin-left: 90px; 
+}
+
+
+        .left::after {
+            border: 30px solid transparent;
+            border-right: 30px solid white;
+          
+        }
+
+        .right::after {
+            border: 30px solid transparent;
+            border-left: 30px solid white;
+           
+        }
+
+        .Sensor {
+            /text-align: left;/
+            padding-left: 20px;
+            color: rgb(161, 161, 168);
+            font-size:14px;
+            position:relative;
+            right:-350px;
+            bottom: 875px;
+        }
+    </style>
+</head>
+<body>
+    <H1><center><big>ROVER</big></center></H1>
+
+
+    <video id="videoPlayer" width="600" controls muted="muted" autoplay>
+        <source src="/video" type="video/mp4" />
+    </video>
+    
+
+    <div id="slider-container">
+        <input type="range" id="speedSlider" min="0" max="100" value="50">
+        <h1 style="color:rgb(108, 108, 120);">Speed: <span id="speedValue">50</span></h1>
+        <button class="arrow-button up" id="upButton"></button>
+        <br>
+        <div class="arrow-container">
+        <button class="arrow-button left"     id="leftButton"></button>
+        
+        <button class="arrow-button right"    id="rightButton"></button>
+        <br>
+        </div>
+        
+        <button class="arrow-button down" id="downButton"></button>
+    
+       
+    </div>
+    <div class="Sensor">
+        <h1>Temperature: 0</h1>
+        <h1>Humidity: 0</h1>
+        <br />
+        <h1>Methane Level: 0</h1>
+        <h1>Carbon Monoxide: 0</h1>
+    </div>
+
+    <script>
+          const ws= new WebSocket("ws://192.168.215.160:8082");
+        
+        const buttons = document.querySelectorAll('.arrow-button');
+        var direction='none';
+        buttons.forEach(button => {
+            button.addEventListener('touchstart', function() {
+                if (button.classList.contains('up')) {
+                    direction = 'up';
+                } else if (button.classList.contains('left')) {
+                    direction = 'left';
+                }  else if (button.classList.contains('right')) {
+                    direction = 'right';
+                } else if (button.classList.contains('down')) {
+                    direction = 'down';
+                }
+            });
+
+            button.addEventListener('touchend', function() {
+                direction = 'none';
+            });
+        });
+        buttons.forEach(button => {
+            button.addEventListener('mousedown', function() {
+                if (button.classList.contains('up')) {
+                    direction = 'up';
+                } else if (button.classList.contains('left')) {
+                    direction = 'left';
+                } else if (button.classList.contains('right')) {
+                    direction = 'right';
+                } else if (button.classList.contains('down')) {
+                    direction = 'down';
+            });
+
+            button.addEventListener('mouseup', function() {
+                direction = 'none';
+            });
+        });
+
+        
+        const speedSlider = document.getElementById('speedSlider');
+        const speedValue = document.getElementById('speedValue');
+
+        
+        let speed = speedSlider.value;
+
+        function handleSliderChange() {
+            speed = speedSlider.value;
+
+            speedValue.textContent = speed;
+        }
+
+        speedSlider.addEventListener('input', handleSliderChange);
+
+
+
+
+        ws.addEventListener("open", ()=>{
+
+            console.log("Connected Successfully");
+            
+            ws.send("client".toString())
+            intervalId = setInterval(SendUpdate,400);
+            
+        })
+
+        
+
+        function SendUpdate(id,name){
+            if(ws.OPEN){
+            ws.send("client"+JSON.stringify({
+                id,
+                name,
+                direction,
+                speed
+            }))}
+            else{
+
+            }
+        }
+        ws.addEventListener("message",({data})=>{
+            
+            
+            console.log(data);
+            
+
+        })
+        ws.addEventListener("close",()=>{
+            
+        })
+        
+       
+    </script>
+
+    
+</body>
+</html>

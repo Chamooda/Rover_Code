@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Control Buttons</title>
+</head>
+<body>
+    <form id="controlForm">
+        <button type="button" onclick="sendRequest('awb')">AWB</button>
+        <button type="button" onclick="sendRequest('awb_gain')">AWB Gain</button>
+        <button type="button" onclick="sendRequest('aec')">AEC Sensor</button>
+        <button type="button" onclick="sendRequest('aec2')">AEC DSP</button>
+        <button type="button" onclick="sendRequest('agc')">AGC</button>
+        <button type="button" onclick="sendRequest('bpc')">BPC</button>
+        <button type="button" onclick="sendRequest('wpc')">WPC</button>
+        <button type="button" onclick="sendRequest('raw_gma')">Raw GMA</button>
+        <button type="button" onclick="sendRequest('lenc')">Lens Correction</button>
+        <button type="button" onclick="sendRequest('hmirror')">H-Mirror</button>
+        <button type="button" onclick="sendRequest('vflip')">V-Flip</button>
+        <button type="button" onclick="sendRequest('dcw')">DCW</button>
+        <button type="button" onclick="sendRequest('colorbar')">Color Bar</button>
+        <button type="button" onclick="sendRequest('face_detect')">Face Detection</button>
+        <button type="button" onclick="sendRequest('face_recognize')">Face Recognition</button>
+    </form>
+
+    <script>
+        function sendRequest(command) {
+            // Create a new XMLHttpRequest object
+            var xhr = new XMLHttpRequest();
+
+            // Define the HTTP method and URL based on the command
+            var url;
+            if (command === 'face_recognize') {
+                url = 'http://192.168.73.36/control?var=' + command + '&val=1';
+            } else {
+                url = 'http://192.168.73.36/control?var=' + command + '&val=0';
+            }
+            xhr.open('GET', url, true);
+
+            // Define the function to handle the response
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        // Request was successful
+                        console.log('Request for ' + command + ' successful.');
+                    } else {
+                        // Request encountered an error
+                        console.error('Request for ' + command + ' failed with status: ' + xhr.status);
+                    }
+                }
+            };
+
+            // Send the request
+            xhr.send();
+        }
+    </script>
+</body>
+</html>
